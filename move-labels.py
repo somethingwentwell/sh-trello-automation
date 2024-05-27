@@ -18,12 +18,13 @@ def get_cards():
     return response.json()
 
 # Function to update a card's labels
-def update_card_labels(label_id, new_label_name, new_label_color):
-    requests.put(f'https://api.trello.com/1/labels/{label_id}?key={key}&token={token}&name={new_label_name}&color={new_label_color}')
+def update_card_labels(card_id, label_id, old_label_id, new_label_id):
+    delete_card_labels(card_id, old_label_id)
+    requests.post(f'https://api.trello.com/1/cards/{card_id}/idLabels?key={key}&token={token}&value={new_label_id}')
     print('Updated label ' + label_id)
 
-def delete_card_labels(label_id):
-    requests.delete(f'https://api.trello.com/1/labels/{label_id}?key={key}&token={token}')
+def delete_card_labels(card_id, label_id):
+    requests.delete(f'https://api.trello.com/1/cards/{card_id}/idLabels/{label_id}?key={key}&token={token}')
     print('Deleted label ' + label_id)
 
 # Main function
@@ -31,20 +32,32 @@ def main():
     # Get all cards on the board
     cards = get_cards()
 
-    # Loop through each card
-    for card in cards:
-        for label in card['labels']:
-            if label['name'] == 'LW Focus: Sales':
-                delete_card_labels(label['id'])
-            if label['name'] == 'LW Focus: Presales':
-                delete_card_labels(label['id'])
+    lw_sales_label_id = ''
+    lw_presales_label_id = ''
+    tw_sales_label_id = ''
+    tw_presales_label_id = ''
 
     for card in cards:
-        for label in card['labels']:
-            if label['name'] == 'TW Focus: Sales':
-                update_card_labels(label['id'], 'LW Focus: Sales', 'orange')
-            if label['name'] == 'TW Focus: Presales':
-                update_card_labels(label['id'], 'LW Focus: Presales', 'purple')
+        if card['name'] == "All Labels":
+            for label in card['labels']:
+                if label['id'] == lw_sales_label_id:
+                    lw_sales_label_id = label['id']
+                if label['name'] == 'LW Focus: Presales':
+                    lw_presales_label_id = label['id']
+                if label['name'] == 'TW Focus: Sales':
+                    tw_sales_label_id = label['id']
+                if label['name'] == 'TW Focus: Presales':
+                    tw_presales_label_id = label['id']
+            break
+
+    # Loop through each card
+    for card in cards:
+        if card['name'] != "All Labels":
+            for label in card['labels']:
+                if label['id'] == tw_sales_label_id:
+                    update_card_labels(card['id'], label['id'], tw_sales_label_id, lw_sales_label_id)
+                if label['id'] == tw_presales_label_id:
+                    update_card_labels(card['id'], label['id'], tw_presales_label_id, lw_presales_label_id)
 
 
 # Run the main function
