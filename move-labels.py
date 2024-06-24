@@ -40,7 +40,7 @@ def main():
     for card in cards:
         if card['name'] == "All Labels":
             for label in card['labels']:
-                if label['id'] == lw_sales_label_id:
+                if label['name'] == 'LW Focus: Sales':
                     lw_sales_label_id = label['id']
                 if label['name'] == 'LW Focus: Presales':
                     lw_presales_label_id = label['id']
